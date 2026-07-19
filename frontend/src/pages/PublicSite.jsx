@@ -35,7 +35,7 @@ export default function PublicSite() {
 
   return (
     <>
-      {!started && <StartupSplash durationMs={10000} />}
+      {!started &&       <StartupSplash durationMs={5000} />}
 
       {started && (
         <>
