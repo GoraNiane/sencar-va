@@ -1,0 +1,63 @@
+[
+  {
+    "id": 1,
+    "brand": "Toyota",
+    "model": "RAV4",
+    "year": 2021,
+    "mileage": 48000,
+    "transmission": "Automatique",
+    "price": 12900000,
+    "available": true,
+    "amenities": [
+      "Climatisation",
+      "Bluetooth",
+      "Caméra de recul",
+      "Vitres électriques"
+    ],
+    "comment": "Véhicule déjà importé et dédouané, disponible immédiatement au showroom de Cocody.",
+    "photos": [],
+    "videos": [],
+    "createdAt": "2026-07-01T09:00:00.000Z"
+  },
+  {
+    "id": 2,
+    "brand": "Mercedes-Benz",
+    "model": "GLC 300",
+    "year": 2022,
+    "mileage": 29000,
+    "transmission": "Automatique",
+    "price": 21500000,
+    "available": true,
+    "amenities": [
+      "Sièges cuir",
+      "Toit ouvrant",
+      "GPS",
+      "Régulateur de vitesse"
+    ],
+    "comment": "Très bon état général, entretien à jour, importation récente.",
+    "photos": [],
+    "videos": [],
+    "createdAt": "2026-07-03T09:00:00.000Z"
+  },
+  {
+    "id": 3,
+    "brand": "volkwagen",
+    "model": "passat",
+    "year": 2012,
+    "mileage": 123456,
+    "transmission": "Automatique",
+    "price": 200000,
+    "available": true,
+    "amenities": [
+      "Climatisation",
+      "GPS",
+      "Toit ouvrant",
+      "Caméra de recul",
+      "Bluetooth"
+    ],
+    "comment": "",
+    "photos": [],
+    "videos": [],
+    "createdAt": "2026-07-18T22:22:06.292Z"
+  }
+]
