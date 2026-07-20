@@ -44,6 +44,12 @@ app.use((err, req, res, next) => {
   next();
 });
 
-app.listen(PORT, () => {
-  console.log(`API Auto Elite démarrée sur http://localhost:${PORT}`);
-});
+// Important pour Vercel : n'active app.listen que si on n'est pas sur Vercel (en local)
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, () => {
+    console.log(`API Auto Elite démarrée sur http://localhost:${PORT}`);
+  });
+}
+
+// Exporte l'application pour que Vercel puisse l'utiliser en serverless
+module.exports = app;
