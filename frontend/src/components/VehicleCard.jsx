@@ -1,14 +1,19 @@
 import VehicleGallery from './VehicleGallery.jsx';
 import { ClockIcon, RoadIcon, TagIcon } from './Icons.jsx';
-import useTilt from '../hooks/useTilt.js';
-import { useHaptic } from '../hooks/useHaptic.js';
 
 const formatPrice = (value) => new Intl.NumberFormat('fr-FR').format(value);
+const STATUS_LABELS = {
+  en_mer: 'En mer',
+  en_dedouanement: 'En dédouanement',
+  disponible: 'Disponible'
+};
+const STATUS_CLASSES = {
+  en_mer: 'badge-status badge-sous-douane',
+  en_dedouanement: 'badge-status badge-sur-commande',
+  disponible: 'badge-status badge-dedouane'
+};
 
-export default function VehicleCard({ vehicle, staggerIndex = 0 }) {
-  const { ref, onMouseMove, onMouseLeave } = useTilt({ max: 6 });
-  const { light } = useHaptic();
-
+export default function VehicleCard({ vehicle }) {
   const {
     id,
     brand,
@@ -22,18 +27,22 @@ export default function VehicleCard({ vehicle, staggerIndex = 0 }) {
     comment,
     photos,
     videos,
-    classification
+    classification,
+    status
   } = vehicle;
 
+  const statusLabel = STATUS_LABELS[status] || STATUS_LABELS.disponible;
+  const statusClass = STATUS_CLASSES[status] || STATUS_CLASSES.disponible;
+
   return (
-    <article ref={ref} onMouseMove={onMouseMove} onMouseLeave={onMouseLeave} className="vcard io-reveal vcard-tilt" data-stagger-index={staggerIndex} style={{ ['--stagger-ms']: String(staggerIndex * 65) + 'ms' }}>
-      <div className="vcard-tilt-inner">
+    <article className="vcard">
       <VehicleGallery vehicleId={id} photos={photos} videos={videos} />
 
       <div className="vcard-body">
         <div className="vcard-title-row">
           <h3>{brand} {model}</h3>
           <div className="vcard-badges">
+            <span className={statusClass}>{statusLabel}</span>
             {classification === 'sous_douane' && <span className="badge-status badge-sous-douane">Sous douane</span>}
             {classification === 'sur_commande' && <span className="badge-status badge-sur-commande">Sur commande</span>}
             {!available && <span className="badge-unavailable">Réservé</span>}
@@ -56,19 +65,14 @@ export default function VehicleCard({ vehicle, staggerIndex = 0 }) {
 
         {comment && <p className="vcard-comment">{comment}</p>}
 
-        <div className="vcard-price mono">
-          {classification === 'sur_commande' ? (
-            <span className="price-ask">Prix sur commande</span>
-          ) : (
-            <>
-              {formatPrice(price)} <small>FCFA</small>
-            </>
-          )}
-        </div>
-        <a href={`tel:+22505090939`} className="vcard-cta" onClick={() => light()}>
-          {classification === 'sur_commande' ? 'Commander' : 'Contacter le showroom'}
+        {classification !== 'sur_commande' && (
+          <div className="vcard-price mono">
+            {formatPrice(price)} <small>FCFA</small>
+          </div>
+        )}
+        <a href={`tel:+22505090939`} className="vcard-cta">
+          {classification === 'sur_commande' ? 'Appeler la compagnie' : 'Contacter le showroom'}
         </a>
-      </div>
       </div>
     </article>
   );

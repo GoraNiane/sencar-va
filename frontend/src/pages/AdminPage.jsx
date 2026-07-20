@@ -1,9 +1,9 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { fetchVehicles, verifyAdminPassword, fetchAlerts, deleteAlert, fetchArticles, createArticle, updateArticle, deleteArticle, fetchPartners, createPartner, deletePartner, fetchQrCode, downloadPdf } from '../api.js';
+import { loginAdmin, fetchVehicles, fetchAlerts, deleteAlert, fetchArticles, createArticle, updateArticle, deleteArticle, fetchPartners, createPartner, deletePartner, downloadPdf, fetchAppointments, updateAppointmentStatus, deleteAppointment, fetchTradeins, updateTradeinStatus, deleteTradein, fetchTopVehicles } from '../api.js';
 import VehicleForm from '../components/VehicleForm.jsx';
 import AdminVehicleList from '../components/AdminVehicleList.jsx';
-import { PlusIcon, ShieldIcon, TrashIcon, EditIcon, DownloadIcon } from '../components/Icons.jsx';
+import { PlusIcon, ShieldIcon, TrashIcon, EditIcon, DownloadIcon, EyeIcon, WhatsAppIcon, PhoneIcon } from '../components/Icons.jsx';
 
 export default function AdminPage() {
   const [vehicles, setVehicles] = useState([]);
@@ -17,43 +17,48 @@ export default function AdminPage() {
   const [authError, setAuthError] = useState('');
   const [submittingAuth, setSubmittingAuth] = useState(false);
 
+  const [qrVehicleId, setQrVehicleId] = useState('');
+
   const [activeTab, setActiveTab] = useState('vehicles');
   const [alerts, setAlerts] = useState([]);
   const [articles, setArticles] = useState([]);
   const [partners, setPartners] = useState([]);
+  const [appointments, setAppointments] = useState([]);
+  const [tradeins, setTradeins] = useState([]);
+  const [topVehicles, setTopVehicles] = useState([]);
 
   const [articleForm, setArticleForm] = useState({ title: '', excerpt: '', content: '' });
   const [editingArticle, setEditingArticle] = useState(null);
   const [partnerName, setPartnerName] = useState('');
-  const [qrVehicleId, setQrVehicleId] = useState('');
 
   const loadAll = useCallback(() => {
     if (!isAuthenticated) return;
     setLoading(true);
     Promise.all([
-      fetchVehicles(),
-      fetchAlerts(),
-      fetchArticles(),
-      fetchPartners()
-    ]).then(([v, a, ar, p]) => {
+      fetchVehicles().catch(() => []),
+      fetchAlerts().catch(() => []),
+      fetchArticles().catch(() => []),
+      fetchPartners().catch(() => []),
+      fetchAppointments().catch(() => []),
+      fetchTradeins().catch(() => []),
+      fetchTopVehicles().catch(() => [])
+    ]).then(([v, a, ar, p, ap, t, top]) => {
       setVehicles(v);
       setAlerts(a);
       setArticles(ar);
       setPartners(p);
+      setAppointments(ap);
+      setTradeins(t);
+      setTopVehicles(top);
     }).finally(() => setLoading(false));
   }, [isAuthenticated]);
 
   useEffect(() => {
-    const savedPassword = localStorage.getItem('admin_password');
-    if (savedPassword) {
-      verifyAdminPassword(savedPassword)
-        .then(() => setIsAuthenticated(true))
-        .catch(() => { localStorage.removeItem('admin_password'); setIsAuthenticated(false); })
-        .finally(() => setCheckingAuth(false));
-    } else {
-      setIsAuthenticated(false);
-      setCheckingAuth(false);
+    const token = localStorage.getItem('admin_token');
+    if (token) {
+      setIsAuthenticated(true);
     }
+    setCheckingAuth(false);
   }, []);
 
   useEffect(() => {
@@ -65,18 +70,20 @@ export default function AdminPage() {
     setSubmittingAuth(true);
     setAuthError('');
     try {
-      await verifyAdminPassword(passwordInput);
-      localStorage.setItem('admin_password', passwordInput);
+      const result = await loginAdmin(passwordInput);
+      localStorage.setItem('admin_token', result.token);
+      localStorage.setItem('admin_role', result.role);
       setIsAuthenticated(true);
     } catch (err) {
-      setAuthError(err.message || 'Mot de passe incorrect.');
+      setAuthError(err.message || 'Mot de passe invalide.');
     } finally {
       setSubmittingAuth(false);
     }
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('admin_password');
+    localStorage.removeItem('admin_token');
+    localStorage.removeItem('admin_role');
     setIsAuthenticated(false);
     setPasswordInput('');
   };
@@ -132,9 +139,24 @@ export default function AdminPage() {
     setPartners(prev => prev.filter(p => p.id !== id));
   };
 
-  const handleGenerateQr = () => {
-    if (!qrVehicleId) return;
-    downloadPdf(qrVehicleId, `fiche-${qrVehicleId}.pdf`);
+  const handleAppointmentStatus = async (id, status) => {
+    await updateAppointmentStatus(id, status);
+    setAppointments(prev => prev.map(a => a.id === id ? { ...a, status } : a));
+  };
+
+  const handleDeleteAppointment = async (id) => {
+    await deleteAppointment(id);
+    setAppointments(prev => prev.filter(a => a.id !== id));
+  };
+
+  const handleTradeinStatus = async (id, status) => {
+    await updateTradeinStatus(id, status);
+    setTradeins(prev => prev.map(t => t.id === id ? { ...t, status } : t));
+  };
+
+  const handleDeleteTradein = async (id) => {
+    await deleteTradein(id);
+    setTradeins(prev => prev.filter(t => t.id !== id));
   };
 
   if (checkingAuth) {
@@ -155,16 +177,16 @@ export default function AdminPage() {
               <ShieldIcon width="32" height="32" />
             </div>
             <h2 className="display">Espace Admin</h2>
-            <p>Saisissez le mot de passe administrateur pour accéder à la gestion du showroom.</p>
+            <p>Veuillez saisir le mot de passe administrateur.</p>
           </div>
           <form onSubmit={handleLoginSubmit}>
             <div className="field-group">
               <label htmlFor="adminPassword">Mot de passe</label>
-              <input id="adminPassword" type="password" placeholder="••••••••" required value={passwordInput} onChange={(e) => setPasswordInput(e.target.value)} />
+              <input id="adminPassword" type="password" placeholder="Mot de passe admin" required value={passwordInput} onChange={(e) => setPasswordInput(e.target.value)} />
             </div>
             {authError && <p className="form-error auth-error-msg">{authError}</p>}
             <button type="submit" className="search-btn login-btn" disabled={submittingAuth}>
-              {submittingAuth ? 'Connexion...' : 'Se connecter'}
+              {submittingAuth ? 'Connexion...' : 'Accéder au dashboard'}
             </button>
           </form>
           <div className="login-footer">
@@ -193,6 +215,9 @@ export default function AdminPage() {
       <div className="wrap admin-body animate-fade-in-up">
         <div className="admin-tabs">
           <button type="button" className={`admin-tab ${activeTab === 'vehicles' ? 'active' : ''}`} onClick={() => setActiveTab('vehicles')}>Véhicules</button>
+          <button type="button" className={`admin-tab ${activeTab === 'stats' ? 'active' : ''}`} onClick={() => setActiveTab('stats')}>Statistiques</button>
+          <button type="button" className={`admin-tab ${activeTab === 'appointments' ? 'active' : ''}`} onClick={() => setActiveTab('appointments')}>Rendez-vous</button>
+          <button type="button" className={`admin-tab ${activeTab === 'tradeins' ? 'active' : ''}`} onClick={() => setActiveTab('tradeins')}>Reprises</button>
           <button type="button" className={`admin-tab ${activeTab === 'alerts' ? 'active' : ''}`} onClick={() => setActiveTab('alerts')}>Alertes</button>
           <button type="button" className={`admin-tab ${activeTab === 'articles' ? 'active' : ''}`} onClick={() => setActiveTab('articles')}>Articles</button>
           <button type="button" className={`admin-tab ${activeTab === 'partners' ? 'active' : ''}`} onClick={() => setActiveTab('partners')}>Partenaires</button>
@@ -219,6 +244,93 @@ export default function AdminPage() {
               loading ? <p className="vehicle-empty">Chargement...</p> : <AdminVehicleList vehicles={vehicles} onEdit={handleEdit} onChanged={loadAll} />
             )}
           </>
+        )}
+
+        {activeTab === 'stats' && (
+          <div className="admin-section">
+            <h2 className="display" style={{ marginBottom: 24 }}>Statistiques</h2>
+            {topVehicles.length === 0 && <p className="vehicle-empty">Aucune donnée pour le moment.</p>}
+            <div className="admin-list">
+              {topVehicles.map((v) => (
+                <div key={v.id} className="admin-list-item">
+                  <div className="admin-list-row">
+                    <div>
+                      <h4>{v.brand} {v.model}</h4>
+                      <div className="admin-list-meta">
+                        <span><EyeIcon width="13" height="13" /> {v.views} vues</span>
+                        <span><WhatsAppIcon width="13" height="13" /> {v.whatsapp} clics</span>
+                        <span><PhoneIcon width="13" height="13" /> {v.call} appels</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'appointments' && (
+          <div className="admin-section">
+            <h2 className="display" style={{ marginBottom: 24 }}>Rendez-vous</h2>
+            {appointments.length === 0 && <p className="vehicle-empty">Aucun rendez-vous.</p>}
+            <div className="admin-list">
+              {appointments.map((a) => (
+                <div key={a.id} className="admin-list-item">
+                  <div className="admin-list-row">
+                    <div>
+                      <h4>{a.name}</h4>
+                      <div className="admin-list-meta">
+                        <span>Tél : {a.phone}</span>
+                        {a.vehicleId && <span>Véhicule #{a.vehicleId}</span>}
+                        <span>{a.date} à {a.time}</span>
+                        <span className={`tag-${a.status === 'confirmed' ? 'available' : 'unavailable'}`}>{a.status}</span>
+                      </div>
+                      {a.message && <p style={{ marginTop: 6, color: 'var(--steel)', fontSize: 13 }}>{a.message}</p>}
+                    </div>
+                    <div className="admin-list-actions">
+                      {a.status !== 'confirmed' && <button type="button" className="btn-primary" style={{ padding: '6px 12px', fontSize: 12 }} onClick={() => handleAppointmentStatus(a.id, 'confirmed')}>Confirmer</button>}
+                      {a.status !== 'cancelled' && <button type="button" className="btn-danger" style={{ padding: '6px 12px', fontSize: 12 }} onClick={() => handleAppointmentStatus(a.id, 'cancelled')}>Annuler</button>}
+                      <button type="button" className="btn-danger" onClick={() => handleDeleteAppointment(a.id)}>
+                        <TrashIcon width="14" height="14" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'tradeins' && (
+          <div className="admin-section">
+            <h2 className="display" style={{ marginBottom: 24 }}>Reprises</h2>
+            {tradeins.length === 0 && <p className="vehicle-empty">Aucune reprise.</p>}
+            <div className="admin-list">
+              {tradeins.map((t) => (
+                <div key={t.id} className="admin-list-item">
+                  <div className="admin-list-row">
+                    <div>
+                      <h4>{t.brand} {t.model} ({t.year || 'N/A'})</h4>
+                      <div className="admin-list-meta">
+                        <span>{t.name}</span>
+                        <span>Tél : {t.phone}</span>
+                        <span>{t.mileage?.toLocaleString('fr-FR')} km</span>
+                        <span className={`tag-${t.status === 'accepted' ? 'available' : 'unavailable'}`}>{t.status}</span>
+                      </div>
+                      {t.description && <p style={{ marginTop: 6, color: 'var(--steel)', fontSize: 13 }}>{t.description}</p>}
+                    </div>
+                    <div className="admin-list-actions">
+                      {t.status !== 'accepted' && <button type="button" className="btn-primary" style={{ padding: '6px 12px', fontSize: 12 }} onClick={() => handleTradeinStatus(t.id, 'accepted')}>Accepter</button>}
+                      {t.status !== 'rejected' && <button type="button" className="btn-danger" style={{ padding: '6px 12px', fontSize: 12 }} onClick={() => handleTradeinStatus(t.id, 'rejected')}>Refuser</button>}
+                      <button type="button" className="btn-danger" onClick={() => handleDeleteTradein(t.id)}>
+                        <TrashIcon width="14" height="14" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         )}
 
         {activeTab === 'alerts' && (

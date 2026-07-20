@@ -1,0 +1,3 @@
+@echo off
+echo Démarrage de l'application Auto Elite...
+npm run dev

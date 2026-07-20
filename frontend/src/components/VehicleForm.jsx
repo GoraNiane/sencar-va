@@ -98,9 +98,9 @@ export default function VehicleForm({ vehicle, onSaved, onCancel }) {
         <div className="field-group">
           <label>Classification</label>
           <select value={form.classification || 'dedouane'} onChange={(e) => setForm({ ...form, classification: e.target.value })}>
-            <option value="dedouane">Déjà dédouanée</option>
-            <option value="sous_douane">Sous douane (Moins cher)</option>
-            <option value="sur_commande">Sur commande (Non expédiée)</option>
+            <option value="dedouane">Disponible</option>
+            <option value="sous_douane">Sous douane</option>
+            <option value="sur_commande">Sur commande (Non expédié)</option>
           </select>
         </div>
         <div className="field-group">
@@ -108,7 +108,7 @@ export default function VehicleForm({ vehicle, onSaved, onCancel }) {
           <input
             required={form.classification !== 'sur_commande'}
             type="number"
-            placeholder={form.classification === 'sur_commande' ? 'Prix sur commande' : 'Ex: 25000000'}
+            placeholder={form.classification === 'sur_commande' ? 'Aucun prix (Sur commande)' : 'Ex: 25000000'}
             value={form.price}
             onChange={(e) => setForm({ ...form, price: e.target.value })}
           />

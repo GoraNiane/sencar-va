@@ -7,7 +7,9 @@
     "mileage": 48000,
     "transmission": "Automatique",
     "price": 12900000,
+    "classification": "dedouane",
     "available": true,
+    "status": "disponible",
     "amenities": [
       "Climatisation",
       "Bluetooth",
@@ -27,7 +29,9 @@
     "mileage": 29000,
     "transmission": "Automatique",
     "price": 21500000,
+    "classification": "dedouane",
     "available": true,
+    "status": "disponible",
     "amenities": [
       "Sièges cuir",
       "Toit ouvrant",
@@ -47,7 +51,9 @@
     "mileage": 123456,
     "transmission": "Automatique",
     "price": 200000,
+    "classification": "dedouane",
     "available": true,
+    "status": "disponible",
     "amenities": [
       "Climatisation",
       "GPS",

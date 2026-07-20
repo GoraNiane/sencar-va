@@ -1,23 +1,24 @@
 const BASE = '/api/vehicles';
 const EXTRA_BASE = '/api';
+const ADMIN_BASE = '/api/admin';
 
 function getHeaders(extraHeaders = {}) {
-  const password = localStorage.getItem('admin_password') || '';
+  const token = localStorage.getItem('admin_token') || '';
   return {
     ...extraHeaders,
-    'Authorization': password
+    'Authorization': token ? `Bearer ${token}` : ''
   };
 }
 
-export async function verifyAdminPassword(password) {
-  const res = await fetch(`${BASE}/verify`, {
+export async function loginAdmin(password) {
+  const res = await fetch(`${ADMIN_BASE}/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ password })
   });
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({}));
-    throw new Error(errorData.message || 'Mot de passe incorrect.');
+    throw new Error(errorData.message || 'Mot de passe invalide.');
   }
   return res.json();
 }
@@ -207,6 +208,193 @@ export async function deletePartner(id) {
   return res.json();
 }
 
+// ===== APPOINTMENTS =====
+export async function fetchAppointments() {
+  const res = await fetch(`${EXTRA_BASE}/appointments`, { headers: getHeaders() });
+  if (!res.ok) throw new Error('Erreur lors du chargement des rendez-vous.');
+  return res.json();
+}
+
+export async function createAppointment(data) {
+  const res = await fetch(`${EXTRA_BASE}/appointments`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.message || "Erreur lors de la prise de rendez-vous.");
+  }
+  return res.json();
+}
+
+export async function updateAppointmentStatus(id, status) {
+  const res = await fetch(`${EXTRA_BASE}/appointments/${id}/status`, {
+    method: 'PUT',
+    headers: getHeaders({ 'Content-Type': 'application/json' }),
+    body: JSON.stringify({ status })
+  });
+  if (!res.ok) throw new Error('Erreur lors de la mise à jour du statut.');
+  return res.json();
+}
+
+export async function deleteAppointment(id) {
+  const res = await fetch(`${EXTRA_BASE}/appointments/${id}`, {
+    method: 'DELETE',
+    headers: getHeaders()
+  });
+  if (!res.ok) throw new Error('Erreur lors de la suppression du rendez-vous.');
+  return res.json();
+}
+
+// ===== TRADE-INS =====
+export async function fetchTradeins() {
+  const res = await fetch(`${EXTRA_BASE}/tradeins`, { headers: getHeaders() });
+  if (!res.ok) throw new Error('Erreur lors du chargement des reprises.');
+  return res.json();
+}
+
+export async function createTradein(data) {
+  const res = await fetch(`${EXTRA_BASE}/tradeins`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.message || "Erreur lors de l'enregistrement de la reprise.");
+  }
+  return res.json();
+}
+
+export async function updateTradeinStatus(id, status) {
+  const res = await fetch(`${EXTRA_BASE}/tradeins/${id}/status`, {
+    method: 'PUT',
+    headers: getHeaders({ 'Content-Type': 'application/json' }),
+    body: JSON.stringify({ status })
+  });
+  if (!res.ok) throw new Error('Erreur lors de la mise à jour du statut.');
+  return res.json();
+}
+
+export async function deleteTradein(id) {
+  const res = await fetch(`${EXTRA_BASE}/tradeins/${id}`, {
+    method: 'DELETE',
+    headers: getHeaders()
+  });
+  if (!res.ok) throw new Error('Erreur lors de la suppression de la reprise.');
+  return res.json();
+}
+
+// ===== FAVORITES =====
+export async function fetchFavorites() {
+  const res = await fetch(`${EXTRA_BASE}/favorites`, { headers: getHeaders() });
+  if (!res.ok) throw new Error('Erreur lors du chargement des favoris.');
+  return res.json();
+}
+
+export async function addFavorite(vehicleId) {
+  const res = await fetch(`${EXTRA_BASE}/favorites`, {
+    method: 'POST',
+    headers: getHeaders({ 'Content-Type': 'application/json' }),
+    body: JSON.stringify({ vehicleId })
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.message || 'Erreur lors de l\'ajout aux favoris.');
+  }
+  return res.json();
+}
+
+export async function removeFavorite(vehicleId) {
+  const res = await fetch(`${EXTRA_BASE}/favorites/${vehicleId}`, {
+    method: 'DELETE',
+    headers: getHeaders()
+  });
+  if (!res.ok) throw new Error('Erreur lors de la suppression du favori.');
+  return res.json();
+}
+
+// ===== REVIEWS =====
+export async function fetchReviews() {
+  const res = await fetch(`${EXTRA_BASE}/reviews`);
+  if (!res.ok) throw new Error('Erreur lors du chargement des avis.');
+  return res.json();
+}
+
+export async function submitReview(data) {
+  const res = await fetch(`${EXTRA_BASE}/reviews`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.message || "Erreur lors de l'envoi de l'avis.");
+  }
+  return res.json();
+}
+
+export async function approveReview(id) {
+  const res = await fetch(`${EXTRA_BASE}/reviews/${id}/approve`, {
+    method: 'PUT',
+    headers: getHeaders()
+  });
+  if (!res.ok) throw new Error('Erreur lors de la modération de l\'avis.');
+  return res.json();
+}
+
+export async function deleteReview(id) {
+  const res = await fetch(`${EXTRA_BASE}/reviews/${id}`, {
+    method: 'DELETE',
+    headers: getHeaders()
+  });
+  if (!res.ok) throw new Error('Erreur lors de la suppression de l\'avis.');
+  return res.json();
+}
+
+// ===== LEGAL =====
+export async function fetchLegalPage(page) {
+  const res = await fetch(`${EXTRA_BASE}/legal/${page}`);
+  if (!res.ok) throw new Error('Page introuvable.');
+  return res.json();
+}
+
+export async function updateLegalPage(page, content) {
+  const res = await fetch(`${EXTRA_BASE}/legal/${page}`, {
+    method: 'PUT',
+    headers: getHeaders({ 'Content-Type': 'application/json' }),
+    body: JSON.stringify({ content })
+  });
+  if (!res.ok) throw new Error('Erreur lors de la mise à jour.');
+  return res.json();
+}
+
+// ===== STATS =====
+export async function fetchVehicleStats(id) {
+  const res = await fetch(`${BASE}/${id}/stats`, { headers: getHeaders() });
+  if (!res.ok) throw new Error('Erreur lors du chargement des stats.');
+  return res.json();
+}
+
+export async function fetchTopVehicles() {
+  const res = await fetch(`${BASE}/stats/top`, { headers: getHeaders() });
+  if (!res.ok) throw new Error('Erreur lors du chargement des statistiques.');
+  return res.json();
+}
+
+export async function trackView(vehicleId) {
+  return fetch(`${BASE}/${vehicleId}/stats/view`, { method: 'POST', headers: getHeaders() });
+}
+
+export async function trackWhatsapp(vehicleId) {
+  return fetch(`${BASE}/${vehicleId}/stats/whatsapp`, { method: 'POST', headers: getHeaders() });
+}
+
+export async function trackCall(vehicleId) {
+  return fetch(`${BASE}/${vehicleId}/stats/call`, { method: 'POST', headers: getHeaders() });
+}
+
 // ===== VEHICLE MEDIA HELPERS =====
 export async function fetchQrCode(vehicleId) {
   const res = await fetch(`${BASE}/${vehicleId}/qr`);
@@ -228,3 +416,6 @@ export async function downloadPdf(vehicleId, filename) {
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
 }
+
+// ===== ADMIN =====
+// Login only — single password, no multi-user system

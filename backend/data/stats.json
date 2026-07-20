@@ -1,0 +1,50 @@
+[
+  {
+    "id": 1,
+    "vehicleId": 3,
+    "type": "view",
+    "createdAt": "2026-07-19T19:33:10.820Z"
+  },
+  {
+    "id": 2,
+    "vehicleId": 3,
+    "type": "view",
+    "createdAt": "2026-07-19T19:33:11.663Z"
+  },
+  {
+    "id": 3,
+    "vehicleId": 3,
+    "type": "view",
+    "createdAt": "2026-07-19T19:33:13.801Z"
+  },
+  {
+    "id": 4,
+    "vehicleId": 3,
+    "type": "view",
+    "createdAt": "2026-07-19T19:33:14.099Z"
+  },
+  {
+    "id": 5,
+    "vehicleId": 2,
+    "type": "view",
+    "createdAt": "2026-07-19T19:33:53.790Z"
+  },
+  {
+    "id": 6,
+    "vehicleId": 2,
+    "type": "view",
+    "createdAt": "2026-07-19T19:33:53.913Z"
+  },
+  {
+    "id": 7,
+    "vehicleId": 2,
+    "type": "view",
+    "createdAt": "2026-07-19T19:33:57.413Z"
+  },
+  {
+    "id": 8,
+    "vehicleId": 2,
+    "type": "view",
+    "createdAt": "2026-07-19T19:33:57.432Z"
+  }
+]

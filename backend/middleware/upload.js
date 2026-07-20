@@ -15,7 +15,8 @@ const storage = multer.diskStorage({
     const safeName = file.originalname
       .toLowerCase()
       .replace(/[^a-z0-9.\-_]/g, '-');
-    cb(null, `${Date.now()}-${safeName}`);
+    const baseName = path.basename(safeName, path.extname(safeName));
+    cb(null, `${Date.now()}-${baseName}.webp`);
   }
 });
 
@@ -26,7 +27,7 @@ const fileFilter = (req, file, cb) => {
   cb(new Error('Type de fichier non autorisé.'));
 };
 
-async function applyWatermark(filePath) {
+async function applyWatermarkAndWebp(filePath) {
   try {
     const watermarkSvg = Buffer.from(
       `<svg width="200" height="40" xmlns="http://www.w3.org/2000/svg">
@@ -35,11 +36,11 @@ async function applyWatermark(filePath) {
     );
     await sharp(filePath)
       .composite([{ input: watermarkSvg, gravity: 'southeast', blend: 'over' }])
-      .jpeg({ quality: 85 })
+      .webp({ quality: 85 })
       .toFile(filePath + '.tmp');
     fs.renameSync(filePath + '.tmp', filePath);
   } catch (err) {
-    console.error('Watermark error:', err.message);
+    console.error('Image processing error:', err.message);
   }
 }
 
@@ -49,16 +50,16 @@ const upload = multer({
   limits: { fileSize: 80 * 1024 * 1024 }
 });
 
-async function uploadWithWatermark(req, res, next) {
+async function uploadWithProcess(req, res, next) {
   await upload.any()(req, res, async (err) => {
     if (err) return res.status(400).json({ message: err.message || 'Erreur lors du téléchargement.' });
     const photoFiles = (req.files || []).filter(f => f.fieldname === 'photos').map(f => f.filename);
     for (const filename of photoFiles) {
       const filePath = path.join(UPLOADS_ROOT, String(req.params.id), filename);
-      await applyWatermark(filePath);
+      await applyWatermarkAndWebp(filePath);
     }
     next();
   });
 }
 
-module.exports = { upload, uploadWithWatermark, UPLOADS_ROOT };
+module.exports = { upload, uploadWithProcess, UPLOADS_ROOT };

@@ -6,9 +6,9 @@ import { useHaptic } from '../hooks/useHaptic.js';
 const TRANSMISSION_OPTIONS = ['Toutes', 'Automatique', 'Manuelle'];
 const CLASSIFICATION_OPTIONS = [
   { value: 'Toutes', label: 'Toutes catégories' },
-  { value: 'dedouane', label: 'Déjà dédouanées' },
+  { value: 'dedouane', label: 'Disponibles' },
   { value: 'sous_douane', label: 'Sous douane' },
-  { value: 'sur_commande', label: 'Sur commande' }
+  { value: 'sur_commande', label: 'Sur commande (Non expédiées)' }
 ];
 
 export default function SearchCard({ onSearch }) {

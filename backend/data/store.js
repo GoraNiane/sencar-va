@@ -5,8 +5,9 @@ const DATA_DIR = __dirname;
 
 function readJson(file) {
   const full = path.join(DATA_DIR, file);
+  if (!fs.existsSync(full)) return [];
   const raw = fs.readFileSync(full, 'utf-8');
-  return JSON.parse(raw);
+  return raw ? JSON.parse(raw) : [];
 }
 
 function writeJson(file, data) {
@@ -18,6 +19,17 @@ function nextId(items) {
   return items.reduce((max, item) => Math.max(max, item.id || 0), 0) + 1;
 }
 
+function recordView(vehicleId, type = 'view') {
+  const stats = readJson('stats.json');
+  stats.push({
+    id: nextId(stats),
+    vehicleId: Number(vehicleId),
+    type,
+    createdAt: new Date().toISOString()
+  });
+  writeJson('stats.json', stats);
+}
+
 module.exports = {
   readVehicles: () => readJson('vehicles.json'),
   writeVehicles: (data) => writeJson('vehicles.json', data),
@@ -27,5 +39,18 @@ module.exports = {
   writeArticles: (data) => writeJson('articles.json', data),
   readPartners: () => readJson('partners.json'),
   writePartners: (data) => writeJson('partners.json', data),
-  nextId
+  readAppointments: () => readJson('appointments.json'),
+  writeAppointments: (data) => writeJson('appointments.json', data),
+  readTradeins: () => readJson('tradeins.json'),
+  writeTradeins: (data) => writeJson('tradeins.json', data),
+  readFavorites: () => readJson('favorites.json'),
+  writeFavorites: (data) => writeJson('favorites.json', data),
+  readReviews: () => readJson('reviews.json'),
+  writeReviews: (data) => writeJson('reviews.json', data),
+  readLegal: () => readJson('legal.json'),
+  writeLegal: (data) => writeJson('legal.json', data),
+  readStats: () => readJson('stats.json'),
+  writeStats: (data) => writeJson('stats.json', data),
+  nextId,
+  recordView
 };

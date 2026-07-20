@@ -1,66 +1,46 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Header from '../components/Header.jsx';
 import Hero from '../components/Hero.jsx';
 import VehicleGrid from '../components/VehicleGrid.jsx';
 import TrustStrip from '../components/TrustStrip.jsx';
 import Footer from '../components/Footer.jsx';
-import StartupSplash from '../components/StartupSplash.jsx';
 import FaqSection from '../components/FaqSection.jsx';
 import PartnersSection from '../components/PartnersSection.jsx';
 import NewsSection from '../components/NewsSection.jsx';
 import AlertForm from '../components/AlertForm.jsx';
-import ArrivalQuickQuestionnaire from '../components/ArrivalQuickQuestionnaire.jsx';
-import RecommendedForYou from '../components/RecommendedForYou.jsx';
-import IoEffects from '../components/IoEffects.jsx';
-import CustomCursor from '../components/CustomCursor.jsx';
-
+import TradeInForm from '../components/TradeInForm.jsx';
+import AppointmentForm from '../components/AppointmentForm.jsx';
+import ChatWidget from '../components/ChatWidget.jsx';
 
 export default function PublicSite() {
   const [filters, setFilters] = useState({ q: '', transmission: 'Toutes', classification: 'Toutes', available: '' });
-  const [showArrivalQuestionnaire, setShowArrivalQuestionnaire] = useState(false);
-  const [started, setStarted] = useState(false);
-
-  useEffect(() => {
-    try {
-      const done = localStorage.getItem('ae_arrival_questionnaire_done');
-      setShowArrivalQuestionnaire(!done);
-    } catch {
-      setShowArrivalQuestionnaire(true);
-    }
-  }, []);
-  useEffect(() => {
-    const id = window.setTimeout(() => setStarted(true), 10000);
-    return () => window.clearTimeout(id);
-  }, []);
 
   return (
     <>
-      {!started &&       <StartupSplash durationMs={5000} />}
-
-      {started && (
-        <>
-          <Header />
-          <Hero onSearch={setFilters} />
-          <IoEffects />
-          <CustomCursor />
-        </>
-      )}
-
-      {started && showArrivalQuestionnaire && (
-        <ArrivalQuickQuestionnaire
-          onApplyFilters={(next) => setFilters((prev) => ({ ...prev, ...next }))}
-        />
-      )}
-
-      {started && <RecommendedForYou />}
-      {started && <VehicleGrid filters={filters} />}
-      {started && <PartnersSection />}
-      {started && <NewsSection />}
-      {started && <FaqSection />}
-      {started && <AlertForm />}
-      {started && <TrustStrip />}
-      {started && <Footer />}
+      <Header />
+      <Hero onSearch={setFilters} />
+      <VehicleGrid filters={filters} />
+      <PartnersSection />
+      <NewsSection />
+      <section className="section forms-section">
+        <div className="wrap">
+          <div className="section-head">
+            <div>
+              <div className="section-eyebrow">Services</div>
+              <h2 className="display">Reprise & Rendez-vous</h2>
+            </div>
+          </div>
+          <div className="forms-grid">
+            <TradeInForm />
+            <AppointmentForm />
+          </div>
+        </div>
+      </section>
+      <FaqSection />
+      <AlertForm />
+      <TrustStrip />
+      <ChatWidget />
+      <Footer />
     </>
   );
 }
-

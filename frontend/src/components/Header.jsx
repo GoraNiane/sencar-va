@@ -11,13 +11,18 @@ export default function Header() {
           <a href="/#catalogue">Véhicules</a>
           <a href="/#faq">FAQ</a>
           <a href="/#actualites">Actualités</a>
-          <Link to="/#contact">Contact</Link>
+          <a href="/#contact">Contact</a>
         </nav>
         <div className="header-actions">
-          <a href="https://wa.me/22500000000" target="_blank" rel="noopener" className="btn-ghost" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+          <a
+            href="https://wa.me/221774888464"
+            target="_blank"
+            rel="noopener"
+            className="btn-ghost"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+          >
             WhatsApp
           </a>
-          <Link to="/admin" className="btn-ghost">Espace admin</Link>
         </div>
       </div>
     </header>

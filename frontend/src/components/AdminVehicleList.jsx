@@ -8,10 +8,10 @@ const formatPrice = (value) => new Intl.NumberFormat('fr-FR').format(value);
 const getClassificationLabel = (val) => {
   switch (val) {
     case 'sous_douane': return 'Sous douane';
-    case 'sur_commande': return 'Sur commande';
+    case 'sur_commande': return 'Sur commande (Non expédié)';
     case 'dedouane':
     default:
-      return 'Dédouanée';
+      return 'Disponible';
   }
 };
 
@@ -40,7 +40,7 @@ export default function AdminVehicleList({ vehicles, onEdit, onChanged }) {
             <div>
               <h4>
                 {v.brand} {v.model} 
-                <span className="mono"> — {v.classification === 'sur_commande' ? 'Sur commande (Prix sur demande)' : `${formatPrice(v.price)} FCFA`}</span>
+                <span className="mono"> {v.classification === 'sur_commande' ? '— Sur commande (Non expédié)' : `— ${formatPrice(v.price)} FCFA`}</span>
               </h4>
               <div className="admin-list-meta">
                 <span>{v.year || '—'}</span>

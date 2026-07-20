@@ -62,7 +62,11 @@ export default function VehicleGrid({ filters }) {
           <div className="vcard-title-row">
             <h3>{v.brand} {v.model}</h3>
           </div>
-          <div className="vcard-price mono">{v.classification === 'sur_commande' ? <span className="price-ask">Prix sur commande</span> : `${new Intl.NumberFormat('fr-FR').format(v.price)} <small>FCFA</small>`}</div>
+          {v.classification !== 'sur_commande' && (
+            <div className="vcard-price mono">
+              {new Intl.NumberFormat('fr-FR').format(v.price)} <small>FCFA</small>
+            </div>
+          )}
         </div>
       </div>
     </Link>
