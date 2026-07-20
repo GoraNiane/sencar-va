@@ -3,10 +3,11 @@ const path = require('path');
 const fs = require('fs');
 const QRCode = require('qrcode');
 const PDFDocument = require('pdfkit');
-const sharp = require('sharp');
+const { put } = require('@vercel/blob');
+const { sql } = require('@vercel/postgres');
 const router = express.Router();
 const { readVehicles, writeVehicles, nextId, readStats, writeStats, recordView } = require('../data/store');
-const { upload, uploadWithProcess, UPLOADS_ROOT } = require('../middleware/upload');
+const { upload, UPLOADS_ROOT } = require('../middleware/upload');
 const { requireAuth } = require('../middleware/auth');
 
 const requireAdmin = [requireAuth];
@@ -156,41 +157,62 @@ router.delete('/:id', requireAdmin, (req, res) => {
   res.json({ message: 'Véhicule supprimé.' });
 });
 
+// ROUTE MEDIA MISE À JOUR POUR VERCEL BLOB (Upload direct depuis le téléphone / Cloud)
 router.post('/:id/media', requireAdmin, upload.fields([
   { name: 'photos', maxCount: 20 },
   { name: 'videos', maxCount: 5 }
 ]), async (req, res) => {
-  const vehicles = readVehicles();
-  const index = vehicles.findIndex(v => v.id === Number(req.params.id));
-  if (index === -1) return res.status(404).json({ message: 'Véhicule introuvable.' });
+  try {
+    const vehicles = readVehicles();
+    const index = vehicles.findIndex(v => v.id === Number(req.params.id));
+    if (index === -1) return res.status(404).json({ message: 'Véhicule introuvable.' });
 
-  const photoFiles = (req.files.photos || []).map(f => f.filename);
-  const videoFiles = (req.files.videos || []).map(f => f.filename);
+    const photoFiles = req.files?.photos || [];
+    const videoFiles = req.files?.videos || [];
 
-  vehicles[index].photos.push(...photoFiles);
-  vehicles[index].videos.push(...videoFiles);
+    const uploadedPhotos = [];
+    const uploadedVideos = [];
 
-  writeVehicles(vehicles);
-
-  for (const filename of photoFiles) {
-    const filePath = path.join(UPLOADS_ROOT, String(req.params.id), filename);
-    try {
-      const watermarkSvg = Buffer.from(
-        `<svg width="200" height="40" xmlns="http://www.w3.org/2000/svg">
-          <text x="10" y="28" font-family="Arial" font-size="16" fill="rgba(255,255,255,0.35)" font-weight="bold">AUTO ELITE</text>
-         </svg>`
-      );
-      await sharp(filePath)
-        .composite([{ input: watermarkSvg, gravity: 'southeast', blend: 'over' }])
-        .webp({ quality: 85 })
-        .toFile(filePath + '.tmp');
-      fs.renameSync(filePath + '.tmp', filePath);
-    } catch (err) {
-      console.error('Image processing error:', err.message);
+    // Envoi des photos vers Vercel Blob
+    for (const file of photoFiles) {
+      const filename = `vehicles/${req.params.id}/${Date.now()}-${file.originalname}`;
+      const blob = await put(filename, file.buffer, {
+        access: 'public',
+      });
+      uploadedPhotos.push(blob.url);
     }
-  }
 
-  res.status(201).json(vehicles[index]);
+    // Envoi des vidéos vers Vercel Blob
+    for (const file of videoFiles) {
+      const filename = `vehicles/${req.params.id}/${Date.now()}-${file.originalname}`;
+      const blob = await put(filename, file.buffer, {
+        access: 'public',
+      });
+      uploadedVideos.push(blob.url);
+    }
+
+    vehicles[index].photos.push(...uploadedPhotos);
+    vehicles[index].videos.push(...uploadedVideos);
+
+    writeVehicles(vehicles);
+
+    // Synchronisation optionnelle avec Neon PostgreSQL si besoin
+    try {
+      await sql`
+        UPDATE vehicles 
+        SET photos = ${JSON.stringify(vehicles[index].photos)}, 
+            videos = ${JSON.stringify(vehicles[index].videos)}
+        WHERE id = ${Number(req.params.id)}
+      `;
+    } catch (dbErr) {
+      console.error('Erreur synchro DB Neon :', dbErr.message);
+    }
+
+    res.status(201).json(vehicles[index]);
+  } catch (err) {
+    console.error('Erreur Vercel Blob Upload:', err.message);
+    res.status(500).json({ message: "Erreur lors de l'upload des médias vers le cloud." });
+  }
 });
 
 router.delete('/:id/media', requireAdmin, (req, res) => {
