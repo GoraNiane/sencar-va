@@ -1,11 +1,12 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Link } from 'react-router-dom';
-import { loginAdmin, fetchVehicles, fetchAlerts, deleteAlert, fetchArticles, createArticle, updateArticle, deleteArticle, fetchPartners, createPartner, deletePartner, downloadPdf, fetchAppointments, updateAppointmentStatus, deleteAppointment, fetchTradeins, updateTradeinStatus, deleteTradein, fetchTopVehicles } from '../api.js';
+import { Link, useNavigate } from 'react-router-dom';
+import { fetchVehicles, fetchAlerts, deleteAlert, fetchArticles, createArticle, updateArticle, deleteArticle, fetchPartners, createPartner, deletePartner, downloadPdf, fetchAppointments, updateAppointmentStatus, deleteAppointment, fetchTradeins, updateTradeinStatus, deleteTradein, fetchTopVehicles } from '../api.js';
 import VehicleForm from '../components/VehicleForm.jsx';
 import AdminVehicleList from '../components/AdminVehicleList.jsx';
-import { PlusIcon, ShieldIcon, TrashIcon, EditIcon, DownloadIcon, EyeIcon, WhatsAppIcon, PhoneIcon } from '../components/Icons.jsx';
+import { PlusIcon, TrashIcon, EditIcon, DownloadIcon, EyeIcon, WhatsAppIcon, PhoneIcon } from '../components/Icons.jsx';
 
 export default function AdminPage() {
+  const navigate = useNavigate();
   const [vehicles, setVehicles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingVehicle, setEditingVehicle] = useState(null);
@@ -13,9 +14,6 @@ export default function AdminPage() {
 
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
-  const [passwordInput, setPasswordInput] = useState('');
-  const [authError, setAuthError] = useState('');
-  const [submittingAuth, setSubmittingAuth] = useState(false);
 
   const [qrVehicleId, setQrVehicleId] = useState('');
 
@@ -31,9 +29,12 @@ export default function AdminPage() {
   const [editingArticle, setEditingArticle] = useState(null);
   const [partnerName, setPartnerName] = useState('');
 
+  const [adminError, setAdminError] = useState('');
+
   const loadAll = useCallback(() => {
     if (!isAuthenticated) return;
     setLoading(true);
+    setAdminError('');
     Promise.all([
       fetchVehicles().catch(() => []),
       fetchAlerts().catch(() => []),
@@ -50,42 +51,37 @@ export default function AdminPage() {
       setAppointments(ap);
       setTradeins(t);
       setTopVehicles(top);
+    }).catch((err) => {
+      console.error('Erreur de chargement admin', err);
+      setAdminError(err?.message || 'Erreur lors du chargement des données.');
     }).finally(() => setLoading(false));
   }, [isAuthenticated]);
 
   useEffect(() => {
-    const token = localStorage.getItem('admin_token');
-    if (token) {
-      setIsAuthenticated(true);
+    try {
+      const token = localStorage.getItem('admin_token');
+      if (token) {
+        setIsAuthenticated(true);
+      } else {
+        navigate('/admin/login', { replace: true });
+      }
+    } catch (e) {
+      console.error('Erreur accès localStorage', e);
+      navigate('/admin/login', { replace: true });
+    } finally {
+      setCheckingAuth(false);
     }
-    setCheckingAuth(false);
-  }, []);
+  }, [navigate]);
 
   useEffect(() => {
     if (isAuthenticated) loadAll();
   }, [isAuthenticated, loadAll]);
 
-  const handleLoginSubmit = async (e) => {
-    e.preventDefault();
-    setSubmittingAuth(true);
-    setAuthError('');
-    try {
-      const result = await loginAdmin(passwordInput);
-      localStorage.setItem('admin_token', result.token);
-      localStorage.setItem('admin_role', result.role);
-      setIsAuthenticated(true);
-    } catch (err) {
-      setAuthError(err.message || 'Mot de passe invalide.');
-    } finally {
-      setSubmittingAuth(false);
-    }
-  };
-
   const handleLogout = () => {
     localStorage.removeItem('admin_token');
     localStorage.removeItem('admin_role');
     setIsAuthenticated(false);
-    setPasswordInput('');
+    navigate('/admin/login', { replace: true });
   };
 
   const handleSaved = () => {
@@ -169,32 +165,7 @@ export default function AdminPage() {
   }
 
   if (!isAuthenticated) {
-    return (
-      <div className="admin-login-layout">
-        <div className="login-box animate-fade-in-up">
-          <div className="login-header">
-            <div className="login-shield-badge">
-              <ShieldIcon width="32" height="32" />
-            </div>
-            <h2 className="display">Espace Admin</h2>
-            <p>Veuillez saisir le mot de passe administrateur.</p>
-          </div>
-          <form onSubmit={handleLoginSubmit}>
-            <div className="field-group">
-              <label htmlFor="adminPassword">Mot de passe</label>
-              <input id="adminPassword" type="password" placeholder="Mot de passe admin" required value={passwordInput} onChange={(e) => setPasswordInput(e.target.value)} />
-            </div>
-            {authError && <p className="form-error auth-error-msg">{authError}</p>}
-            <button type="submit" className="search-btn login-btn" disabled={submittingAuth}>
-              {submittingAuth ? 'Connexion...' : 'Accéder au dashboard'}
-            </button>
-          </form>
-          <div className="login-footer">
-            <Link to="/" className="btn-secondary-hero btn-secondary-light login-back-btn">Retour au site</Link>
-          </div>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   return (
@@ -213,6 +184,9 @@ export default function AdminPage() {
       </header>
 
       <div className="wrap admin-body animate-fade-in-up">
+        {adminError && (
+          <p className="form-error" style={{ marginBottom: 16 }}>{adminError}</p>
+        )}
         <div className="admin-tabs">
           <button type="button" className={`admin-tab ${activeTab === 'vehicles' ? 'active' : ''}`} onClick={() => setActiveTab('vehicles')}>Véhicules</button>
           <button type="button" className={`admin-tab ${activeTab === 'stats' ? 'active' : ''}`} onClick={() => setActiveTab('stats')}>Statistiques</button>

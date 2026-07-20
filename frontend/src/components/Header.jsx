@@ -14,6 +14,9 @@ export default function Header() {
           <a href="/#contact">Contact</a>
         </nav>
         <div className="header-actions">
+          <Link to="/admin/login" className="btn-ghost" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            EA
+          </Link>
           <a
             href="https://wa.me/221774888464"
             target="_blank"
