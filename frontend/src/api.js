@@ -1,6 +1,7 @@
-const BASE = '/api/vehicles';
-const EXTRA_BASE = '/api';
-const ADMIN_BASE = '/api/admin';
+const API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
+const BASE = `${API_BASE}/api/vehicles`;
+const EXTRA_BASE = `${API_BASE}/api`;
+const ADMIN_BASE = `${API_BASE}/api/admin`;
 
 function getHeaders(extraHeaders = {}) {
   const token = localStorage.getItem('admin_token') || '';

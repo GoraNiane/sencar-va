@@ -1246,26 +1246,8 @@ footer{ background: var(--navy); color:rgba(255,255,255,0.65); margin-top:96px; 
 
 /* ===== CUSTOM CURSOR (DESKTOP ONLY) ===== */
 @media (hover: hover) and (pointer: fine) {
-  * { cursor: none !important; }
   .ae-cursor{
-    position: fixed; top:0; left:0; width:18px; height:18px;
-    border-radius: 50%; border: 2px solid var(--navy);
-    background: rgba(217,83,30,0.18);
-    pointer-events: none; z-index: 9999;
-    transform: translate(-50%, -50%);
-    transition: width 0.2s ease, height 0.2s ease, background 0.2s ease, border-color 0.2s ease;
-    mix-blend-mode: normal;
-  }
-  .ae-cursor--clickable{
-    width: 38px; height: 38px;
-    background: rgba(217,83,30,0.32);
-    border-color: var(--rust);
-  }
-  .ae-cursor--text{
-    width: 4px; height: 22px;
-    border-radius: 2px;
-    background: var(--navy);
-    border-color: transparent;
+    display: none !important;
   }
 }
 
@@ -1403,7 +1385,7 @@ footer{ background: var(--navy); color:rgba(255,255,255,0.65); margin-top:96px; 
     scroll-behavior: auto !important;
   }
   .vcard-tilt-inner{ transform: none !important; }
-  .ae-cursor{ display: none !important; }
+
 }
 
 /* ===== FORMS SECTION ===== */

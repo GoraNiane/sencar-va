@@ -65,5 +65,45 @@
     "photos": [],
     "videos": [],
     "createdAt": "2026-07-18T22:22:06.292Z"
+  },
+  {
+    "id": 4,
+    "brand": "lambourghini",
+    "model": "urus",
+    "year": 2026,
+    "mileage": 23456789,
+    "transmission": "Automatique",
+    "price": 235677863,
+    "classification": "dedouane",
+    "available": true,
+    "status": "disponible",
+    "amenities": [],
+    "comment": "",
+    "photos": [],
+    "videos": [],
+    "createdAt": "2026-07-20T15:19:55.574Z"
+  },
+  {
+    "id": 5,
+    "brand": "lambourghini",
+    "model": "urus",
+    "year": 2026,
+    "mileage": 23456789,
+    "transmission": "Automatique",
+    "price": 235677863,
+    "classification": "dedouane",
+    "available": true,
+    "status": "disponible",
+    "amenities": [
+      "Climatisation",
+      "Sièges cuir",
+      "Régulateur de vitesse",
+      "4x4",
+      "Toit ouvrant"
+    ],
+    "comment": "ertyuiop[pdsdfjkl;fdzfgkl;fzdfghjkl;'",
+    "photos": [],
+    "videos": [],
+    "createdAt": "2026-07-20T15:20:27.392Z"
   }
 ]

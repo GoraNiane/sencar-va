@@ -9,7 +9,7 @@ export default function Hero({ onSearch }) {
       <div className="wrap">
         <div className="hero-grid">
           <div className="hero-content hero-entrance">
-            <div className="eyebrow hero-entrance-item">Showroom Auto Elite — Abidjan</div>
+            <div className="eyebrow hero-entrance-item">Showroom Auto Elite</div>
             <h1 className="display hero-entrance-item">
               Nos voitures déjà<br />importées, <em>en exposition</em>.
             </h1>
