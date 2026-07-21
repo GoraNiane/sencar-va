@@ -173,7 +173,6 @@ export default function AdminPage() {
       <header className="admin-header">
         <div className="wrap admin-header-inner">
           <Link to="/" className="logo">
-            <div className="logo-mark">AE</div>
             <div className="logo-text">AUTO ELITE — ADMIN</div>
           </Link>
           <div className="header-actions">

@@ -7,7 +7,7 @@ const { put } = require('@vercel/blob');
 const { sql } = require('@vercel/postgres');
 const router = express.Router();
 const { readVehicles, writeVehicles, nextId, readStats, writeStats, recordView } = require('../data/store');
-const { upload, UPLOADS_ROOT } = require('../middleware/upload');
+const { upload, uploadWithProcess, UPLOADS_ROOT } = require('../middleware/upload');
 const { requireAuth } = require('../middleware/auth');
 
 const requireAdmin = [requireAuth];
@@ -157,61 +157,26 @@ router.delete('/:id', requireAdmin, (req, res) => {
   res.json({ message: 'Véhicule supprimé.' });
 });
 
-// ROUTE MEDIA MISE À JOUR POUR VERCEL BLOB (Upload direct depuis le téléphone / Cloud)
-router.post('/:id/media', requireAdmin, upload.fields([
-  { name: 'photos', maxCount: 20 },
-  { name: 'videos', maxCount: 5 }
-]), async (req, res) => {
+// Upload des médias (photos/vidéos) avec sauvegarde locale + watermark
+router.post('/:id/media', requireAdmin, uploadWithProcess, async (req, res) => {
   try {
     const vehicles = readVehicles();
     const index = vehicles.findIndex(v => v.id === Number(req.params.id));
     if (index === -1) return res.status(404).json({ message: 'Véhicule introuvable.' });
 
-    const photoFiles = req.files?.photos || [];
-    const videoFiles = req.files?.videos || [];
+    const files = req.files || [];
+    const photoFiles = files.filter(f => f.fieldname === 'photos').map(f => f.filename);
+    const videoFiles = files.filter(f => f.fieldname === 'videos').map(f => f.filename);
 
-    const uploadedPhotos = [];
-    const uploadedVideos = [];
-
-    // Envoi des photos vers Vercel Blob
-    for (const file of photoFiles) {
-      const filename = `vehicles/${req.params.id}/${Date.now()}-${file.originalname}`;
-      const blob = await put(filename, file.buffer, {
-        access: 'public',
-      });
-      uploadedPhotos.push(blob.url);
-    }
-
-    // Envoi des vidéos vers Vercel Blob
-    for (const file of videoFiles) {
-      const filename = `vehicles/${req.params.id}/${Date.now()}-${file.originalname}`;
-      const blob = await put(filename, file.buffer, {
-        access: 'public',
-      });
-      uploadedVideos.push(blob.url);
-    }
-
-    vehicles[index].photos.push(...uploadedPhotos);
-    vehicles[index].videos.push(...uploadedVideos);
+    vehicles[index].photos.push(...photoFiles);
+    vehicles[index].videos.push(...videoFiles);
 
     writeVehicles(vehicles);
 
-    // Synchronisation optionnelle avec Neon PostgreSQL si besoin
-    try {
-      await sql`
-        UPDATE vehicles 
-        SET photos = ${JSON.stringify(vehicles[index].photos)}, 
-            videos = ${JSON.stringify(vehicles[index].videos)}
-        WHERE id = ${Number(req.params.id)}
-      `;
-    } catch (dbErr) {
-      console.error('Erreur synchro DB Neon :', dbErr.message);
-    }
-
     res.status(201).json(vehicles[index]);
   } catch (err) {
-    console.error('Erreur Vercel Blob Upload:', err.message);
-    res.status(500).json({ message: "Erreur lors de l'upload des médias vers le cloud." });
+    console.error('Erreur upload médias:', err.message);
+    res.status(500).json({ message: "Erreur lors de l'upload des médias." });
   }
 });
 

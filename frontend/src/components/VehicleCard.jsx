@@ -57,9 +57,12 @@ export default function VehicleCard({ vehicle }) {
 
         {amenities?.length > 0 && (
           <div className="vcard-amenities">
-            {amenities.map((a) => (
+            {amenities.slice(0, 6).map((a) => (
               <span key={a} className="amenity-badge"><TagIcon width="11" height="11" />{a}</span>
             ))}
+            {amenities.length > 6 && (
+              <span className="amenity-badge amenity-badge-more">+{amenities.length - 6}</span>
+            )}
           </div>
         )}
 

@@ -2,8 +2,87 @@ import { useState } from 'react';
 import { createVehicle, updateVehicle, uploadMedia } from '../api.js';
 
 const AMENITY_OPTIONS = [
-  'Climatisation', 'GPS', 'Caméra de recul', 'Sièges cuir', 'Toit ouvrant',
-  'Bluetooth', 'Régulateur de vitesse', 'Vitres électriques', 'Rétroviseurs électriques', '4x4'
+  // Confort & Climatisation
+  'Climatisation automatique', 'Climatisation bizone', 'Climatisation quadrizone',
+  'Sièges chauffants', 'Sièges ventilés', 'Sièges massants',
+  'Sièges cuir', 'Sièges tissu', 'Sièges alcantara',
+  'Sièges électriques conducteur', 'Sièges électriques passager',
+  'Mémoire sièges', 'Sièges rabattables', 'Banquette arrière fractionnable',
+  'Toit ouvrant', 'Toit panoramique', 'Toit vitré',
+  'Volant chauffant', 'Volant cuir multifonction',
+  'Rétroviseurs électriques rabattables', 'Rétroviseurs dégivrants',
+  'Rétroviseurs électrochromes', 'Vitres électriques',
+  'Vitres arrière surteintées', 'Pare-brise acoustique',
+  'Hayon électrique', 'Hayon mains-libres',
+  'Portes latérales électriques',
+
+  // Systèmes d'aide à la conduite (ADAS)
+  'Régulateur de vitesse adaptatif', 'Régulateur de vitesse',
+  'Limiteur de vitesse', 'Maintien dans la voie',
+  'Alerte franchissement de ligne', 'Alerte angle mort',
+  'Alerte trafic transversal', 'Freinage automatique d\'urgence',
+  'Reconnaissance des panneaux', 'Caméra 360°', 'Caméra de recul',
+  'Caméra avant', 'Park Assist', 'Stationnement automatique',
+  'Capteurs de stationnement avant', 'Capteurs de stationnement arrière',
+  'Affichage tête haute (HUD)', 'Night Vision',
+  'Détecteur de fatigue conducteur', 'Pré-collision assisté',
+  'Aide au démarrage en côte', 'Contrôle de descente',
+  'Système anti-brouillard', 'Feux de route automatiques',
+  'Feux adaptatifs LED', 'Feux matriciels LED',
+
+  // Multimédia & Connectivité
+  'Apple CarPlay', 'Android Auto', 'Écran tactile',
+  'GPS / Navigation intégrée', 'Bluetooth',
+  'Chargeur smartphone sans fil', 'Wi-Fi hotspot',
+  'Prise USB avant', 'Prise USB arrière', 'Prise USB-C',
+  'Prise 12V', 'Prise 220V',
+  'Système audio premium (Bose, JBL, Harman...)',
+  'Caisson de basses', 'Radio DAB+',
+  'Commande vocale', 'Reconnaissance gestuelle',
+  'Mise à jour cartes OTA', 'Tablettes arrière écrans',
+
+  // Motorisation & Transmission
+  '4x4 (Transmission intégrale)', 'Hybride', 'Électrique',
+  'Mode Eco / Sport / Confort', 'Palettes au volant',
+  'Boîte automatique séquentielle', 'Boîte manuelle',
+  'Suspension pneumatique', 'Suspension adaptative',
+  'Direction assistée variable', 'Launch Control',
+
+  // Sécurité
+  'ABS', 'ESP', 'Airbags frontaux', 'Airbags latéraux',
+  'Airbags rideaux', 'Airbags genoux', 'Antivol',
+  'Alarme périmétrique', 'Alarme volumétrique',
+  'Verrouillage centralisé', 'Keyless Entry',
+  'Démarrage sans clé', 'Suivi GPS véhicule',
+  'Caméra embarquée (Dashcam)', 'Extincteur',
+
+  // Extérieur
+  'Jantes alliage', 'Jantes acier', 'Toit bi-ton',
+  'Barres de toit', 'Attelage remorque',
+  'Pas de vitre latérale arrière (utilitaire)',
+  'Phares LED', 'Phares Xénon', 'Phares halogènes',
+  'Feux arrière LED', 'Feux arrière fumés',
+  'Rétroviseurs déportés', 'Bas de caisse',
+  'Autocollant publicitaire', 'Vitres teintées',
+
+  // Pratique
+  'Galerie / coffre de toit',
+  'Siège enfant intégré', 'ISOFIX',
+  'Filet à bagages', 'Cache-bagages',
+  'Pneus neige', 'Chaînes à neige',
+  'Roue de secours', 'Kit anti-crevaison',
+  'Cric et outillage', 'Triangle de signalisation',
+  'Gilet de sécurité', 'Trousse de premiers soins',
+  'Coffre réfrigéré', 'Double plancher',
+  'Boîte à gants réfrigérée',
+  'Porte-gobelets avant', 'Porte-gobelets arrière',
+  'Accoudoir central avant', 'Accoudoir central arrière',
+  'Tablette pique-nique arrière',
+  'Éclairage d\'ambiance LED',
+  'Vide-poches multiples',
+  'Crochet d\'attache',
+  'Pré-équipement téléphone',
+  'Cendrier / Allume-cigare'
 ];
 
 const emptyForm = {
@@ -21,8 +100,13 @@ export default function VehicleForm({ vehicle, onSaved, onCancel }) {
   const [videoFiles, setVideoFiles] = useState([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
+  const [amenitySearch, setAmenitySearch] = useState('');
 
   const isEditing = Boolean(vehicle);
+
+  const filteredAmenities = AMENITY_OPTIONS.filter(a =>
+    a.toLowerCase().includes(amenitySearch.toLowerCase())
+  );
 
   const toggleAmenity = (amenity) => {
     setForm((f) => ({
@@ -116,9 +200,16 @@ export default function VehicleForm({ vehicle, onSaved, onCancel }) {
       </div>
 
       <div className="field-group">
-        <label>Commodités</label>
+        <label>Commodités <span className="upload-hint" style={{display:'inline', fontWeight:400, textTransform:'none', letterSpacing:0}}>({form.amenities.length} sélectionnée(s))</span></label>
+        <input
+          type="text"
+          className="amenity-search"
+          placeholder="Rechercher une commodité..."
+          value={amenitySearch}
+          onChange={(e) => setAmenitySearch(e.target.value)}
+        />
         <div className="amenity-checks">
-          {AMENITY_OPTIONS.map((amenity) => (
+          {filteredAmenities.map((amenity) => (
             <label key={amenity} className="checkbox-field">
               <input
                 type="checkbox"
@@ -128,6 +219,9 @@ export default function VehicleForm({ vehicle, onSaved, onCancel }) {
               {amenity}
             </label>
           ))}
+          {filteredAmenities.length === 0 && (
+            <span className="upload-hint" style={{ gridColumn: '1 / -1' }}>Aucune commodité trouvée pour "{amenitySearch}"</span>
+          )}
         </div>
       </div>
 
@@ -152,22 +246,20 @@ export default function VehicleForm({ vehicle, onSaved, onCancel }) {
 
       <div className="admin-form-grid">
         <div className="field-group">
-          <label>Photos (prises au téléphone)</label>
+          <label>Photos</label>
           <input
             type="file"
             accept="image/*"
-            capture="environment"
             multiple
             onChange={(e) => setPhotoFiles(Array.from(e.target.files))}
           />
           {photoFiles.length > 0 && <span className="upload-hint">{photoFiles.length} photo(s) sélectionnée(s)</span>}
         </div>
         <div className="field-group">
-          <label>Vidéos (prises au téléphone)</label>
+          <label>Vidéos</label>
           <input
             type="file"
             accept="video/*"
-            capture="environment"
             multiple
             onChange={(e) => setVideoFiles(Array.from(e.target.files))}
           />

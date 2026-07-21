@@ -23,6 +23,7 @@ export default function SearchCard({ onSearch }) {
   const [selectedBrands, setSelectedBrands] = useState([]);
   const [sort, setSort] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   useEffect(() => {
     fetchVehicles().then((all) => {
@@ -73,30 +74,38 @@ export default function SearchCard({ onSearch }) {
         <label htmlFor="maxPrice">Budget max (FCFA)</label>
         <input id="maxPrice" type="number" placeholder="Max" value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)} />
       </div>
-      <div className="field-group">
-        <label htmlFor="sort">Tri</label>
-        <select id="sort" value={sort} onChange={(e) => setSort(e.target.value)}>
-          <option value="">Par défaut</option>
-          <option value="price_asc">Prix croissant</option>
-          <option value="price_desc">Prix décroissant</option>
-          <option value="date_desc">Plus récents</option>
-        </select>
-      </div>
-      <div className="field-group search-brand-group">
-        <label>Marques</label>
-        <div className="brand-checkboxes">
-          {brands.map((b) => (
-            <label key={b} className="checkbox-field">
-              <input type="checkbox" checked={selectedBrands.includes(b)} onChange={() => toggleBrand(b)} />
-              {b}
-            </label>
-          ))}
+
+      <div className={`filter-extras ${filtersOpen ? 'open' : ''}`}>
+        <div className="field-group">
+          <label htmlFor="sort">Tri</label>
+          <select id="sort" value={sort} onChange={(e) => setSort(e.target.value)}>
+            <option value="">Par défaut</option>
+            <option value="price_asc">Prix croissant</option>
+            <option value="price_desc">Prix décroissant</option>
+            <option value="date_desc">Plus récents</option>
+          </select>
         </div>
+        <div className="field-group search-brand-group">
+          <label>Marques</label>
+          <div className="brand-checkboxes">
+            {brands.map((b) => (
+              <label key={b} className="checkbox-field">
+                <input type="checkbox" checked={selectedBrands.includes(b)} onChange={() => toggleBrand(b)} />
+                {b}
+              </label>
+            ))}
+          </div>
+        </div>
+        <label className="checkbox-field">
+          <input type="checkbox" checked={onlyAvailable} onChange={(e) => setOnlyAvailable(e.target.checked)} />
+          Disponibles uniquement
+        </label>
       </div>
-      <label className="checkbox-field">
-        <input type="checkbox" checked={onlyAvailable} onChange={(e) => setOnlyAvailable(e.target.checked)} />
-        Disponibles uniquement
-      </label>
+
+      <button type="button" className="filter-toggle" onClick={() => setFiltersOpen(!filtersOpen)}>
+        {filtersOpen ? 'Moins de filtres ▲' : 'Plus de filtres ▼'}
+      </button>
+
       <button type="submit" className="search-btn hero-ripple" disabled={submitting}>
         {submitting ? 'Recherche…' : (
           <>
